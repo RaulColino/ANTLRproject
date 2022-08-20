@@ -1,0 +1,9 @@
+# Don't track content of these folders
+gen/
+out/
+.idea/
+practica1/.DS_Store
+SEMV.iml
+
+practica1/.antlr
+practica1/.idea

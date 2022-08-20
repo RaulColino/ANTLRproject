@@ -1,0 +1,216 @@
+//COMPROBACIÓN DE TIPOS
+
+
+axioma :
+	program <EOF> ; {$tipo == $program.tipo;}
+
+program :
+	part program 
+	{
+		if($part.tipo == tipo_error || $program.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { $tipo = void; }
+	}
+	| part {$tipo = $part.tipo;}
+part :
+	type {$restpart.v = $type.tipo;} restpart {$tipo = $respart.tipo;}
+restpart :
+	IDENT “(“ “void” “)” blq 
+	{
+		RefTS ref = insertaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ ya declarado.”);
+		} else {
+			InsertaTipo(ref, void -> $v);
+			????? 
+			if($blq.tipo == tipo_error) {
+				$tipo = tipo_error;
+			} else {$tipo = void;}
+		}
+	}
+	| IDENT “(“ listparam “)” blq
+	{
+		RefTS ref = insertaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ ya declarado.”);
+		} else {
+			InsertaTipo(ref, $listparam.tipo -> $v);
+			????? $tipo = 
+			if($blq.tipo == tipo_error) {
+				$tipo = tipo_error;
+			} else {$tipo = void;}
+		}
+	} 
+blq :
+	“{“ sentlist “}” {$tipo = $sentlist.tipo;}
+listparam :
+	listparam “,” type IDENT {$tipo = $listparam1.tipo x $type.tipo;}
+	| type IDENT {$tipo = $type.tipo;}
+type :
+	“void” {$tipo = void;}
+	| “int” {$tipo = int;}
+	| “float” {$tipo = float;}
+
+sentlist :
+	sentlist sent 
+	{
+		if($sentlist.tipo == tipo_error || $sent.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { $tipo = void; }
+	}
+	| sent {$tipo = $sent.tipo;}
+sent :
+	type IDENT vlid “;” 
+	| IDENT “=” exp “;” 
+	{
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			if($exp.tipo == tipo_error) {
+				$tipo = tipo_error;
+			} else {
+				if(dameTipo(ref) == $exp.tipo) { $tipo = void }
+				else {
+					$tipo = tipo_error;
+					Error($IDENT.text + “ recibe un valor de tipo no compatible.“);
+				}
+			}
+		}
+	}
+	| IDENT “(“ params“)” “;” 
+	{
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			expTipo t = dameTipo(ref);
+			if(esFuncion(t)){
+				if(TiposComp(DaTipoParam(t), $params.tipo)) {
+					$tipo = void;
+				} else {
+					$tipo = tipo_error;
+					Error($IDENT.text + “ tiene parámetros de tipos incompatibles.”);
+				}
+			} else {
+				$tipo = tipo_error;
+				Error($IDENT.text + “ no es función o procedimiento.”);
+			}
+		}
+	}
+	| “return” exp “;” {$tipo = $exp.tipo;}
+vlid :
+	“,” IDENT vlid
+	{
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else { $tipo = dameTipo(ref) x $vlid.tipo; }
+	}
+	| λ {$tipo = void;}
+params : 
+	factor aparams {$tipo = $factor.tipo x $aparams.tipo;}
+	| λ {$tipo = void;}
+aparams : 
+	“,” factor aparams {$tipo = $factor.tipo x $aparams.tipo;}
+	| λ {$tipo = void;}
+exp :
+	exp “+” expt 
+	{
+		if($exp.tipo == tipo_error || $expt.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { 
+			????? if($exp.tipo == $expt.tipo) { 
+			????? if(TiposComp($exp.tipo, $expt.tipo)) {
+				$tipo = $exp.tipo;
+			} else {
+				$tipo = tipo_error;
+				Error(“Tipos incompatibles.”);
+			}
+		}
+	}
+	| exp “-“ expt 
+	{
+		if($exp.tipo == tipo_error || $expt.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { 
+			????? if($exp.tipo == $expt.tipo) { 
+			????? if(TiposComp($exp.tipo, $expt.tipo)) {
+				$tipo = $exp.tipo;
+			} else {
+				$tipo = tipo_error;
+				Error(“Tipos incompatibles.”);
+			}
+		}
+	}
+	| expt {$tipo = $expt.tipo;}
+expt :
+	expt “*” factor 
+	{
+		if($expt.tipo == tipo_error || $factor.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { 
+			????? if($expt.tipo == $factor.tipo) { 
+			????? if(TiposComp($expt.tipo, $factor.tipo)) {
+				$tipo = $expt.tipo;
+			} else {
+				$tipo = tipo_error;
+				Error(“Tipos incompatibles.”);
+			}
+		}
+	}
+	| expt “/” factor 
+	{
+		if($expt.tipo == tipo_error || $factor.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { 
+			????? if($expt.tipo == $factor.tipo) { 
+			????? if(TiposComp($expt.tipo, $factor.tipo)) {
+				$tipo = $expt.tipo;
+			} else {
+				$tipo = tipo_error;
+				Error(“Tipos incompatibles.”);
+			}
+		}
+	}
+	| factor {$tipo = $factor.tipo;}
+factor :
+	IDENT “(“ params “)” 
+	{
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			expTipo t = dameTipo(ref);
+			if(esFuncion(t)){
+				if(TiposComp(DaTipoParam(t), $params.tipo)) {
+					$tipo = daTipoDev(t);
+				} else {
+					$tipo = tipo_error;
+					Error($IDENT.text + “ tiene parámetros de tipos incompatibles.”);
+				}
+			} else {
+				$tipo = tipo_error;
+				Error($IDENT.text + “ no es función o procedimiento.”);
+			}
+		}
+	}
+	| “(“ exp “)” {$tipo = $exp.tipo;}
+	| IDENT 
+	{
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			$tipo = dameTipo(ref);
+		}
+	}
+	| CONSTINT {$tipo = int;}
+	| CONSTFLOAT {$tipo = float;}

@@ -1,0 +1,111 @@
+program ::= 
+part program 
+| part
+
+part ::= 
+type 
+restpart
+
+restpart ::= 
+IDENT “(“ “void” “)” blq 
+| IDENT “(“ listparam “)”
+ blq
+
+
+blq ::= 
+“{“ sentlist “}”
+
+
+listparam ::= 
+listparam “,” type IDENT 
+| type IDENT
+
+
+type ::= 
+“void” 
+| “int” 
+| “float”
+
+Dentro de las funciones y procedimientos se pueden encontrar senctencias de declaración de variables,
+asignación y llamadas a funciones y procedimientos.
+
+sentlist ::= 
+sentlist sent 
+| sent
+
+sent ::= 
+type lid “;” 
+| IDENT “=” exp “;” 
+| IDENT ”(“ “)”
+| IDENT “(“ lid “)” “;” 
+| “return” exp “;”
+
+lid ::= 
+IDENT {
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			$tipo = dameTipo(ref);
+		}
+	}
+| IDENT “,” lid
+
+exp ::= 
+exp “+” expt 
+| exp “-“ expt 
+| expt
+
+expt ::= 
+expt “*” factor
+    {
+        if($expt.tipo == tipo_error || $factor.tipo == tipo_error) {
+			$tipo == tipo_error;
+		} else { 
+
+            if (TiposComp($expt.tipo, $factor.tipo)){
+                $tipo = $expt.tipo;
+            }
+            else{
+
+            }
+        }
+    }
+| expt “/” factor 
+| factor
+
+factor ::= 
+IDENT “(“ “)” 
+| IDENT “(“ lid “)” {
+        {
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			$tipo = dameTipo(ref);
+            if(esFuncion($tipo)){
+                if(TiposComp(DaTipoParam(t))){
+
+                }
+            }
+		}
+	}
+}
+| “(“ exp “)”
+    {
+        $tipo = $exp.tipo
+    }
+| IDENT
+    {
+		RefTS ref = buscaId($IDENT.text);
+		if(ref == null) {
+			$tipo = tipo_error;
+			Error($IDENT.text + “ no declarado.”);
+		} else {
+			$tipo = dameTipo(ref);
+		}
+	}
+| CONSTINT {$tipo = int;} 
+| CONSTFLOAT {$tipo = float;}

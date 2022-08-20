@@ -1,0 +1,40 @@
+axioma : {newEnvironment();} program {exitEnvironment();} ;
+program : part program
+    | part ;
+part : type IDENT {insertFunctionID($IDENT.text, $type.t, newEnvironment($IDENT.text));} '(' fparams ')' blq {exitEnvironment();} ;
+fparams :  'void'
+    | flistparam ;
+blq : '{' sentlist '}' ;
+flistparam : type IDENT {insertID($IDENT.text, $type.t);} flistparam1 ;
+flistparam1 : ',' type IDENT {insertID($IDENT.text, $type.t);} flistparam1
+    | ;
+type returns [String t] : 'void' {$t = "void";}
+    | 'int' {$t = "int";}
+    | 'float' {$t = "float";} ;
+sentlist : sent sentlist
+    | sent ;
+sent : type IDENT {insertID($IDENT.text, $type.t);} vlid[$type.t] ';'
+    | IDENT restsent
+    | 'return' exp ';' ;
+restsent : '=' exp ';'
+    | '(' params ')' ';' ;
+vlid[String t] : ',' IDENT {insertID($IDENT.text, $t);} vlid[$t]
+    | ;
+params : factor aparams
+    | ;
+aparams : ',' factor aparams
+    | ;
+
+exp : expt exp1 ;
+exp1 : '+' expt exp1
+    | '-' expt exp1
+    | ;
+expt : factor expt1 ;
+expt1 : '*' factor expt1
+    | '/' factor expt1
+    | ;
+factor : IDENT '(' params ')'
+    |  '('  exp  ')'
+    | IDENT
+    | CONSTINT
+    | CONSTFLOAT ;

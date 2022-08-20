@@ -1,0 +1,40 @@
+axioma : program ;
+program : part program
+    | part ;
+part : type IDENT  '(' fparams ')' blq ;
+fparams :  'void'
+    | flistparam ;
+blq : '{' sentlist '}' ;
+flistparam : type IDENT flistparam1 ;
+flistparam1 : ',' type IDENT flistparam1
+    | ;
+type : 'void'
+    | 'int'
+    | 'float' ;
+sentlist : sent sentlist
+    | sent ;
+sent : type IDENT vlid ';'
+    | IDENT restsent
+    | 'return' exp ';' ;
+restsent : '=' exp ';'
+    | '(' params ')' ';' ;
+vlid : ',' IDENT vlid
+    | ;
+params : factor aparams
+    | ;
+aparams : ',' factor aparams
+    | ;
+
+exp : expt exp1 ;
+exp1 : '+' expt exp1
+    | '-' expt exp1
+    | ;
+expt : factor expt1 ;
+expt1 : '*' factor expt1
+    | '/' factor expt1
+    | ;
+factor : IDENT '(' params ')'
+    |  '('  exp  ')'
+    | IDENT
+    | CONSTINT
+    | CONSTFLOAT ;

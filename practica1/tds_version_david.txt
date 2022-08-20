@@ -1,0 +1,64 @@
+TABLA DE SÍMBOLOS
+
+axioma :
+	{nuevoEntorno();} program {salirEntorno();} <EOF> ;
+
+program :
+	part program 
+	| part 
+part :
+	type restpart[$type.tipo] 
+restpart[String tipo] :
+	IDENT “(“ “void” “)” 
+	{
+		insertaID(fun/proc, $IDENT.text, $tipo);
+		nuevoEntorno($IDENT.text);
+	} 
+	blq {salirEntorno();}
+	| IDENT 
+	{
+		insertaID(fun/proc, $IDENT.text, $tipo);
+		nuevoEntorno($IDENT.text);
+	} 
+	“(“ listparam “)” blq {salirEntorno();}
+blq :
+	“{“ sentlist “}” 
+listparam :
+	listparam “,” type IDENT {insertaID(param , $IDENT.text, $type.tipo);}
+	| type IDENT {insertaID(param , $IDENT.text, $type.tipo);}
+type returns [String tipo] :
+	“void” {$tipo = “void”;}
+	| “int” {$tipo = “int”;}
+	| “float” {$tipo = “float”;}
+
+sentlist :
+	sentlist sent 
+	| sent 
+sent :
+	type IDENT { insertaID(vble , $IDENT.text, $type.tipo); } vlid[$type.tipo] “;” 
+	| IDENT “=” exp “;” 
+	| IDENT “(“ params “)” “;” 
+	| “return” exp “;” 
+vlid[String tipo] :
+	“,” IDENT { insertaID(vble , $IDENT.text, $tipo); } vlid[$tipo]
+	| λ
+params : 
+	factor aparams 
+	| λ
+aparams : 
+	“,” factor aparams 
+	| λ
+exp :
+	exp “+” expt 
+	| exp “-“ expt 
+	| expt 
+expt :
+	expt “*” factor 
+	| expt “/” factor 
+	| factor 
+factor :
+	IDENT “(“ params “)” 
+	| “(“ exp “)” 
+	| IDENT 
+	| CONSTINT 
+	| CONSTFLOAT 

@@ -1,0 +1,45 @@
+axioma ::= {nuevoEntorno();} program {salirEntorno();} <EOF>;
+
+program ::= part program 
+| part
+
+part ::= type {restpart.t = type.t;} restpart
+
+restpart ::= IDENT {nuevoEntorno(IDENT.lexema); InsertaID(func, IDENT.lexema, restpart.t );} "(" "void" ")" blq {salirEntorno();}
+| IDENT {nuevoEntorno(IDENT.lexema); InsertaID(func, IDENT.lexema, restpart.t ); blq.t = restpart.t} "(" listparam ")" blq {salirEntorno();}
+
+blq ::= {nuevoEntorno(); sentlist.t = blq.t;} "{" sentlist "}"  {salirEntorno();}
+
+listparam ::= listparam "," type IDENT {insertaID(param, IDENT.lexema, type.t);}
+| type IDENT {insertaID(param, IDENT.lexema, type.t);}
+
+type ::= "void" {type.t = "void";}
+| "int" {type.t = "int";}
+| "float" {type.t = "float";}
+
+sentlist ::= {sentlist1.t = sentlist.t; sent.t = sentlist.t;} sentlist1 sent 
+| {sent.t = sentlist.t;} sent
+
+sent ::= type {lid.t = type.t;} lid ";" 
+| IDENT "=" exp ";"
+| IDENT "(" ")"
+| IDENT "(" lid ")" ";"
+| "return" exp ";"
+
+lid ::= IDENT {InsertaID(var, IDENT.lexema, lid.t );} 
+| IDENT {InsertaID(var, IDENT.lexema, lid.t); lid1.t = lid.t;}  "," lid1 
+
+exp ::= exp1 "+" expt
+| exp1 "-" expt
+| expt
+
+expt ::= {expt1.t = expt.t; factor.t = expt.t;} expt1 "*" factor 
+| {expt1.t = expt.t; factor.t = expt.t;} expt1 "/" factor 
+| {factor.t = expt.t;} factor
+
+factor ::= IDENT "(" ")"
+| IDENT "(" lid ")"
+| "(" exp ")"
+| IDENT
+| CONSTINT
+| CONSTFLOAT
